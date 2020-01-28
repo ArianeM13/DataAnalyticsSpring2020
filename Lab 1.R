@@ -69,5 +69,48 @@ summary(EPI)
 fivenum(EPI,na.rm=TRUE) #na.rm removes all the NA
 stem(EPI)
 hist(EPI)
-hist(EPI,seq(30.,95.,1.0),prob=True)
+hist(EPI,seq(30.,95.,1.0), prob=TRUE) #probablity density = true, seq- interval?, bw= bin width
+lines(density(EPI,na.rm=TRUE,bw=1.))
+lines(density(EPI,na.rm=TRUE,bw='SJ'))
+rug(EPI)
 
+plot(ecdf(EPI),do.points=T, verticals=F)
+plot(ecdf(EPI),do.points=F, verticals=F)
+plot(ecdf(EPI),do.points=F, verticals=T)
+
+help(ecdf)
+
+par(pty='s')
+help(par)
+
+qqnorm(EPI)
+qqline(EPI)
+
+x<- seq(30,95,1)
+qqplot(qt(ppoints(250),df=5),x,xlab='Q-Q plot for t dsn')
+qqline(x)
+
+plot(ecdf(DALY),do.points=F, verticals=T)
+par(pty='s')
+qqnorm(DALY)
+qqline(DALY)
+
+boxplot(EPI,DALY, names=c('EPI','DALY'))
+qqplot(EPI,DALY)
+
+boxplot(EPI,DALY,ENVHEALTH,ECOSYSTEM,AIR_H,WATER_H,AIR_E,WATER_E, names=c('EPI','DALY','ENVHEALTH','ECOSYSTEM','AIR_H','WATER_H','AIR_E','WATER_E'))
+
+EPILand<-EPI[!Landlock]
+ELand<- EPILand[!is.na(EPILand)]
+ELand 
+
+hist(ELand)
+hist(ELand,seq(30.,95.,1.0), prob=T)
+lines(density(ELand,na.rm=TRUE,bw=1.))
+lines(density(ELand,na.rm=TRUE,bw='SJ'))
+rug(ELand)
+
+plot(ecdf(ELand),do.points=F, verticals=T)
+par(pty='s')
+qqnorm(ELand)
+qqline(ELand)

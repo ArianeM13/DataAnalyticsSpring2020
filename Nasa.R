@@ -48,9 +48,13 @@ Day_of <- read.csv(file.choose(), header = T)
 Day_after1 <- read.csv(file.choose(), header = T)
 Day_after2 <- read.csv(file.choose(), header = T)
 
+str(Precip_days) #inital levels for days are not what I want
+head(Precip_days)
+
 #Removing rows with no "day" data that is day of, day before ...
 Precip_days1 <- Precip_days[!grepl("-", Precip_days$Days),] 
 Precip_num1 <- Precip_num[!grepl("-", Precip_num$Days),] 
+
 
 #Histograms
 par(mfrow = c(2,2))
@@ -65,6 +69,7 @@ text(h1$mids,h1$counts,labels=h1$counts, adj=c(0.5, -0.5))
 
 h1 <- hist(Day_after2$Precip_avg.mm.,main = 'Precipitation 2 Days After', xlab = 'Precipitation Average (mm)',col = 'light pink')
 text(h1$mids,h1$counts,labels=h1$counts, adj=c(0.5, -0.5))
+summary(h1)
 
 #Boxplot
 boxplot(Day_before$Precip_avg.mm., ylab = 'Precipitaion avg (mm)', col="light blue")
@@ -80,6 +85,18 @@ boxplot(Day_after2$Precip_avg.mm., ylab = 'Precipitaion avg (mm)', col="light bl
 title('Precipitation 2 Days After')
 
 boxplot(Precip_avg.mm.~Days, data =Precip_days1,ylab = 'Precipitaion avg (mm)', col="light blue")
+title('Precipitation Averages for all days')
+
+#changing structure of factor levels
+str(Precip_days1$Days)
+Precip_days2 <- Precip_days1
+#Precip_days2$Days <- relevel(Precip_days2$Days, ref = c('day_before','day_of','1day_after','2days_after'))
+Precip_days2$Days <- droplevels(Precip_days2$Days)
+str(Precip_days2$Days)
+levels(Precip_days2$Days) <- c('day_before','day_of','1day_after','2days_after')
+
+boxplot(Precip_avg.mm.~Days, data =Precip_days2,ylab = 'Precipitaion avg (mm)', col="light blue")
+title('Precipitation Averages for all days restructured')
 
 #Scatter plot
 plot(Precip_num1$Precip_avg.mm.,Precip_num1$Day_num, main = "Days vs Precipitation Average",
@@ -94,8 +111,95 @@ plot(Precip_num1$Day_num,Precip_num1$Precip_avg.mm.,  main = "Days vs Precipitat
      xlab = "Precipitaion Average (mm)", ylab = "Days",
      pch = 19)
 
+#Classification of Precipitaion
+str(Precip_days2$Precip_avg.mm.)
+Precip_days2$Precip_class <- cut(Precip_days2$Precip_avg.mm., br = c(-1,1,5,10,100), labels= c('Light','Moderate','Heavy','Very Heavy'))
+Precip_days2$Precip_class <- as.factor(Precip_days2$Precip_class)
+summary(Precip_days2$Precip_class) # Light-257, Mod-58,Heavy-9,Very H-14
+head(Precip_days2)
 
-str(Precip_Binary)
-set.seed(500)
+class.freq <- table(Precip_days2$Precip_class)
+h1 <- barplot(class.freq, ylim=c(0, max(class.freq) + 15), main = 'Precipitation Classification', col = 'orange')
+text(h1,class.freq+1, class.freq, adj=c(0.5, -0.5))
+
+#Decision Tree
+library(rpart)
+library(rpart.plot)
+ 
+str(Precip_days2)
+Precip_days2$Precip_class <- as.factor(Precip_days2$Precip_class)
+Precip_days2$Days <- as.factor(Precip_days2$Days)
+Precip_days2$Date_bin <- as.factor(Precip_days2$Date_bin)
+
+PrecipTree1 <- rpart(Precip_class~Days, data = Precip_days2 , method = 'class')
+summary(PrecipTree1)
+printcp(PrecipTree1)
+rpart.plot(PrecipTree1, extra= 106)
+rpart.plot(PrecipTree1)
+
+PrecipTree1.1 <- rpart(Precip_class~Days, data = Precip_days2, cp=0.1)
+summary(PrecipTree1.1)
+printcp(PrecipTree1.1)
+rpart.plot(PrecipTree1.1, extra= 106)
+rpart.plot(PrecipTree1.1)
+
+
+PrecipTree2 <- rpart(Days ~ Precip_class, data = Precip_days2 , method = 'class', minsplit = 1)
+summary(PrecipTree2)
+printcp(PrecipTree2)
+rpart.plot(PrecipTree2, extra= 106)
+rpart.plot(PrecipTree2)
+
+
+PrecipTree3 <- rpart(Precip_class ~ Date_bin, data = Precip_days2 , method = 'class')
+summary(PrecipTree3)
+printcp(PrecipTree2)
+rpart.plot(PrecipTree3, extra= 106)
+rpart.plot(PrecipTree2)
+
+PrecipTree4 <- rpart(Date_bin~Precip_class, data = Precip_days2 , method = 'class', minsplit=2, minbucket=1)
+summary(PrecipTree4)
+printcp(PrecipTree4)
+rpart.plot(PrecipTree4, extra= 106)
+rpart.plot(PrecipTree4)
+
+#Trying with ctree
+library(party)
+
+tree <- ctree(Precip_class~Days, data = Precip_days2)
+plot(tree) #kind of works but splits into two
+
+tree <- ctree(Days ~ Precip_class, data = Precip_days2)
+plot(tree)
+
+tree <- ctree(Precip_class ~ Date_bin, data = Precip_days2)
+plot(tree) #This works
+
+tree <- ctree(Date_bin~Precip_class, data = Precip_days2)
+plot(tree)
+
+#Trying with days as numbers
+str(Precip_num1)
+Precip_num1$Day_num <- droplevels(Precip_num1$Day_num)
+str(Precip_num1$Day_num)
+levels(Precip_num1$Day_num) <- c('-1','0','1','2')
+str(Precip_num1)
+
+str(Precip_num1$Precip_avg.mm.)
+Precip_num1$Precip_class <- cut(Precip_num1$Precip_avg.mm., br = c(-1,1,5,10,100), labels= c('Light','Moderate','Heavy','Very Heavy'))
+Precip_num1$Precip_class <- as.factor(Precip_num1$Precip_class)
+summary(Precip_num1$Precip_class) # Light-257, Mod-58,Heavy-9,Very H-14
+head(Precip_num1)
+
+tree <- ctree(Precip_class~Day_num, data = Precip_num1)
+plot(tree) #same as above
+
+tree <- ctree(Precip_avg.mm.~Day_num, data = Precip_num1)
+plot(tree) 
+
+tree <- ctree(Precip_class~Day_num +Precip_avg.mm., data = Precip_num1)
+plot(tree) #only split based on avg
+
+
 
 

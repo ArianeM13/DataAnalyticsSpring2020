@@ -200,6 +200,15 @@ plot(tree)
 tree <- ctree(Precip_class~Day_num +Precip_avg.mm., data = Precip_num1)
 plot(tree) #only split based on avg
 
+#Classification 2
+str(Precip_days2$Precip_avg.mm.)
+Precip_days2$Precip_class2 <- cut(Precip_days2$Precip_avg.mm., br = c(-1,5,10,20,100), labels= c('Light','Moderate','Heavy','Very Heavy'))
+Precip_days2$Precip_class2 <- as.factor(Precip_days2$Precip_class2)
+summary(Precip_days2$Precip_class2) # Light-315, Mod-9,Heavy-10,Very H-4
+head(Precip_days2) 
 
+class.freq2 <- table(Precip_days2$Precip_class)
+h1 <- barplot(class.freq, ylim=c(0, max(class.freq2) + 15), main = 'Precipitation Classification', col = 'orange')
+text(h1,class.freq2+1, class.freq2, adj=c(0.5, -0.5))
 
 

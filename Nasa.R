@@ -87,7 +87,7 @@ title('Precipitation 2 Days After')
 boxplot(Precip_avg.mm.~Days, data =Precip_days1,ylab = 'Precipitaion avg (mm)', col="light blue")
 title('Precipitation Averages for all days')
 
-#changing structure of factor levels
+#changing structure of factor levels - Messed up data
 str(Precip_days1$Days)
 Precip_days2 <- Precip_days1
 #Precip_days2$Days <- relevel(Precip_days2$Days, ref = c('day_before','day_of','1day_after','2days_after'))
@@ -172,6 +172,7 @@ plot(tree) #kind of works but splits into two
 tree <- ctree(Days ~ Precip_class, data = Precip_days2)
 plot(tree)
 
+#binary
 tree <- ctree(Precip_class ~ Date_bin, data = Precip_days2)
 plot(tree) #This works
 
@@ -207,8 +208,280 @@ Precip_days2$Precip_class2 <- as.factor(Precip_days2$Precip_class2)
 summary(Precip_days2$Precip_class2) # Light-315, Mod-9,Heavy-10,Very H-4
 head(Precip_days2) 
 
-class.freq2 <- table(Precip_days2$Precip_class)
-h1 <- barplot(class.freq, ylim=c(0, max(class.freq2) + 15), main = 'Precipitation Classification', col = 'orange')
+class.freq2 <- table(Precip_days2$Precip_class2)
+h1 <- barplot(class.freq2, ylim=c(0, max(class.freq2) + 15), main = 'Precipitation Classification', col = 'red')
 text(h1,class.freq2+1, class.freq2, adj=c(0.5, -0.5))
 
+tree <- ctree(Precip_class2~Days, data = Precip_days2)
+tree
+plot(tree)
+summary(tree)
 
+#binary
+tree <- ctree(Precip_class2 ~ Date_bin, data = Precip_days2)
+plot(tree)
+
+tree <- ctree(Precip_class2~Precip_avg.mm., data = Precip_days2)
+plot(tree)
+
+#Classification 3
+Precip_days2$Precip_class3 <- cut(Precip_days2$Precip_avg.mm., br = c(-1,5,10,100), labels= c('Light','Moderate','Heavy'))
+Precip_days2$Precip_class3 <- as.factor(Precip_days2$Precip_class3)
+summary(Precip_days2$Precip_class3) # Light-315, Mod-9,Heavy-14
+head(Precip_days2) 
+
+class.freq3 <- table(Precip_days2$Precip_class3)
+h1 <- barplot(class.freq3, ylim=c(0, max(class.freq3) + 15), main = 'Precipitation Classification', col = 'red')
+text(h1,class.freq3+1, class.freq3, adj=c(0.5, -0.5))
+
+tree <- ctree(Precip_class3~Days, data = Precip_days2)
+tree
+plot(tree)
+summary(tree)
+
+#binary
+tree <- ctree(Precip_class3 ~ Date_bin, data = Precip_days2)
+plot(tree)
+
+tree <- ctree(Precip_class3~Precip_avg.mm., data = Precip_days2)
+plot(tree)
+
+#Classification 4
+Precip_days2$Precip_class4 <- cut(Precip_days2$Precip_avg.mm., br = c(-1,1,5,100), labels= c('Light','Moderate','Heavy'))
+Precip_days2$Precip_class4 <- as.factor(Precip_days2$Precip_class4)
+summary(Precip_days2$Precip_class4) # Light-257, Mod-58,Heavy-23
+
+class.freq4 <- table(Precip_days2$Precip_class4)
+h1 <- barplot(class.freq4, ylim=c(0, max(class.freq4) + 15), main = 'Precipitation Classification', col = 'red')
+text(h1,class.freq4+1, class.freq4, adj=c(0.5, -0.5))
+
+tree <- ctree(Precip_class4~Days, data = Precip_days2)
+tree
+plot(tree)
+summary(tree)
+
+#binary
+tree <- ctree(Precip_class4 ~ Date_bin, data = Precip_days2)
+plot(tree)
+
+tree <- ctree(Precip_class4~Precip_avg.mm., data = Precip_days2)
+plot(tree)
+
+#Classification 5
+Precip_days2$Precip_class5 <- cut(Precip_days2$Precip_avg.mm., br = c(-1,10,20,100), labels= c('Light','Moderate','Heavy'))
+Precip_days2$Precip_class5 <- as.factor(Precip_days2$Precip_class5)
+summary(Precip_days2$Precip_class5) # Light-324, Mod-10,Heavy-4
+head(Precip_days2) 
+
+class.freq5 <- table(Precip_days2$Precip_class5)
+h1 <- barplot(class.freq5, ylim=c(0, max(class.freq5) + 15), main = 'Precipitation Classification', col = 'red')
+text(h1,class.freq5+1, class.freq5, adj=c(0.5, -0.5))
+
+tree <- ctree(Precip_class5~Days, data = Precip_days2)
+tree
+plot(tree)
+summary(tree)
+
+#binary
+tree <- ctree(Precip_class5 ~ Date_bin, data = Precip_days2)
+plot(tree)
+
+tree <- ctree(Precip_class5~Precip_avg.mm., data = Precip_days2)
+plot(tree)
+
+#Classification 6
+str(Precip_days2$Precip_avg.mm.)
+Precip_days2$Precip_class6 <- cut(Precip_days2$Precip_avg.mm., br = c(-1,0.5,1,10,20,100), labels= c('Trace', 'Light','Moderate','Heavy','Very Heavy'))
+Precip_days2$Precip_class6 <- as.factor(Precip_days2$Precip_class6)
+summary(Precip_days2$Precip_class6) #Trace-224   Light-33, Mod-67,Heavy-10,Very H-4
+head(Precip_days2) 
+
+class.freq6 <- table(Precip_days2$Precip_class6)
+h1 <- barplot(class.freq6, ylim=c(0, max(class.freq6) + 15), main = 'Precipitation Classification', col = 'red')
+text(h1,class.freq6+1, class.freq6, adj=c(0.5, -0.5))
+
+tree <- ctree(Precip_class6~Days, data = Precip_days2)
+plot(tree)
+
+
+#binary
+tree <- ctree(Precip_class6 ~ Date_bin, data = Precip_days2)
+plot(tree)
+
+
+tree <- ctree(Precip_class6~Precip_avg.mm., data = Precip_days2)
+plot(tree)
+
+#Classification 7
+str(Precip_days2$Precip_avg.mm.)
+Precip_days2$Precip_class7 <- cut(Precip_days2$Precip_avg.mm., br = c(-1,0.5,1,5,10,100), labels= c('Trace', 'Light','Moderate','Heavy','Very Heavy'))
+Precip_days2$Precip_class7 <- as.factor(Precip_days2$Precip_class7)
+summary(Precip_days2$Precip_class7) # Trace-224   Light-33, Mod-58,Heavy-9,Very H-14
+head(Precip_days7) 
+
+class.freq7 <- table(Precip_days2$Precip_class7)
+h1 <- barplot(class.freq7, ylim=c(0, max(class.freq7) + 15), main = 'Precipitation Classification', col = 'red')
+text(h1,class.freq7+1, class.freq7, adj=c(0.5, -0.5))
+
+tree <- ctree(Precip_class7~Days, data = Precip_days2)
+plot(tree)
+summary(tree)
+
+#binary
+tree <- ctree(Precip_class7 ~ Date_bin, data = Precip_days2)
+plot(tree)
+
+tree <- ctree(Precip_class7~Precip_avg.mm., data = Precip_days2)
+plot(tree)
+
+#Classification 6 is best so far - doing variation - Classification 8
+str(Precip_days2$Precip_avg.mm.)
+Precip_days2$Precip_class8 <- cut(Precip_days2$Precip_avg.mm., br = c(-1,0.5,5,10,20,100), labels= c('Trace', 'Light','Moderate','Heavy','Very Heavy'))
+Precip_days2$Precip_class8 <- as.factor(Precip_days2$Precip_class8)
+summary(Precip_days2$Precip_class8) #Trace-224   Light-91, Mod-9,Heavy-10,Very H-4
+head(Precip_days2) 
+
+class.freq8 <- table(Precip_days2$Precip_class8)
+h1 <- barplot(class.freq8, ylim=c(0, max(class.freq8) + 15), main = 'Precipitation Classification', col = 'red')
+text(h1,class.freq8+1, class.freq8, adj=c(0.5, -0.5))
+
+tree <- ctree(Precip_class6~Days, data = Precip_days2)
+plot(tree)
+
+
+#binary
+tree <- ctree(Precip_class8 ~ Date_bin, data = Precip_days2)
+plot(tree)
+
+
+tree <- ctree(Precip_class8~Precip_avg.mm., data = Precip_days2)
+plot(tree)
+
+#other variation - Classification 9
+Precip_days2$Precip_class9 <- cut(Precip_days2$Precip_avg.mm., br = c(-1,0.5,1,5,20,100), labels= c('Trace', 'Light','Moderate','Heavy','Very Heavy'))
+Precip_days2$Precip_class9 <- as.factor(Precip_days2$Precip_class9)
+summary(Precip_days2$Precip_class9) #Trace-224   Light-33, Mod-58,Heavy-19,Very H-4
+head(Precip_days2) 
+
+class.freq9 <- table(Precip_days2$Precip_class9)
+h1 <- barplot(class.freq9, ylim=c(0, max(class.freq9) + 15), main = 'Precipitation Classification', col = 'red')
+text(h1,class.freq9+1, class.freq9, adj=c(0.5, -0.5))
+
+tree <- ctree(Precip_class9~Days, data = Precip_days2)
+plot(tree)
+
+
+#binary
+tree <- ctree(Precip_class9 ~ Date_bin, data = Precip_days2)
+plot(tree)
+
+
+tree <- ctree(Precip_class9~Precip_avg.mm., data = Precip_days2)
+plot(tree)
+
+plot(Precip_avg.mm.~Days, data = Precip_days2 )
+
+head(Precip_days)
+head(Precip_days2)
+head(Precip_days1)
+
+#releveling
+Precip_days3 <- Precip_days1
+#Precip_days2$Days <- relevel(Precip_days2$Days, ref = c('day_before','day_of','1day_after','2days_after'))
+Precip_days3$Days <- droplevels(Precip_days3$Days)
+str(Precip_days2$Days)
+#levels(Precip_days2$Days) <- c('day_before','day_of','1day_after','2days_after')
+
+boxplot(Precip_avg.mm.~Days, data =Precip_days3,ylab = 'Precipitaion avg (mm)', col="light blue")
+title('Precipitation Averages for all days')
+
+#Class 1
+Precip_days3$Precip_class <- cut(Precip_days3$Precip_avg.mm., br = c(-1,1,5,10,100), labels= c('Light','Moderate','Heavy','Very Heavy'))
+Precip_days3$Precip_class <- as.factor(Precip_days3$Precip_class)
+summary(Precip_days3$Precip_class) # Light-257, Mod-58,Heavy-9,Very H-14
+head(Precip_days3)
+
+class.freq <- table(Precip_days3$Precip_class)
+h1 <- barplot(class.freq, ylim=c(0, max(class.freq) + 15), main = 'Precipitation Classification', col = 'orange')
+text(h1,class.freq+1, class.freq, adj=c(0.5, -0.5))
+
+tree <- ctree(Precip_class~Days, data = Precip_days3)
+plot(tree)
+
+#binary
+tree <- ctree(Precip_class ~ Date_bin, data = Precip_days3)
+plot(tree)
+
+#Classification 2
+str(Precip_days3$Precip_avg.mm.)
+Precip_days3$Precip_class2 <- cut(Precip_days3$Precip_avg.mm., br = c(-1,5,10,20,100), labels= c('Light','Moderate','Heavy','Very Heavy'))
+Precip_days3$Precip_class2 <- as.factor(Precip_days3$Precip_class2)
+summary(Precip_days3$Precip_class2) # Light-315, Mod-9,Heavy-10,Very H-4
+head(Precip_days3) 
+
+class.freq2 <- table(Precip_days3$Precip_class2)
+h1 <- barplot(class.freq2, ylim=c(0, max(class.freq2) + 15), main = 'Precipitation Classification 2', col = 'red')
+text(h1,class.freq2+1, class.freq2, adj=c(0.5, -0.5))
+
+tree <- ctree(Precip_class2~Days, data = Precip_days3)
+plot(tree)
+
+#binary
+tree <- ctree(Precip_class2 ~ Date_bin, data = Precip_days3)
+plot(tree)
+
+#Classification 6
+Precip_days3$Precip_class6 <- cut(Precip_days3$Precip_avg.mm., br = c(-1,0.5,1,10,20,100), labels= c('Trace', 'Light','Moderate','Heavy','Very Heavy'))
+Precip_days3$Precip_class6 <- as.factor(Precip_days3$Precip_class6)
+summary(Precip_days3$Precip_class6) #Trace-224   Light-33, Mod-67,Heavy-10,Very H-4
+head(Precip_days3) 
+
+class.freq6 <- table(Precip_days3$Precip_class6)
+h1 <- barplot(class.freq6, ylim=c(0, max(class.freq6) + 15), main = 'Precipitation Classification', col = 'purple')
+text(h1,class.freq6+1, class.freq6, adj=c(0.5, -0.5))
+
+tree <- ctree(Precip_class6~Days, data = Precip_days3)
+plot(tree)
+
+
+#binary
+tree <- ctree(Precip_class6 ~ Date_bin, data = Precip_days3)
+plot(tree)
+
+#Classification 10
+Precip_days3$Precip_class10 <- cut(Precip_days3$Precip_avg.mm., br = c(-1,0.1,0.5,1,10,20,100), labels= c('Trace','Very Light' ,'Light','Moderate','Heavy','Very Heavy'))
+Precip_days3$Precip_class10 <- as.factor(Precip_days3$Precip_class10)
+summary(Precip_days3$Precip_class10) #Trace-132, VL-92   Light-33, Mod-67,Heavy-10,Very H-4
+head(Precip_days3) 
+
+class.freq10 <- table(Precip_days3$Precip_class10)
+h1 <- barplot(class.freq10, ylim=c(0, max(class.freq10) + 15), main = 'Precipitation Classification 10', col = 'blue')
+text(h1,class.freq10+1, class.freq10, adj=c(0.5, -0.5))
+
+tree <- ctree(Precip_class10~Days, data = Precip_days3)
+plot(tree)
+
+
+#binary
+tree <- ctree(Precip_class10 ~ Date_bin, data = Precip_days3)
+plot(tree)
+
+#Classification11
+Precip_days3$Precip_class6 <- cut(Precip_days3$Precip_avg.mm., br = c(-1,0.5,1,5,10,20,100), labels= c('Trace','Very Light', 'Light','Moderate','Heavy','Very Heavy'))
+Precip_days3$Precip_class6 <- as.factor(Precip_days3$Precip_class6)
+summary(Precip_days3$Precip_class6) #Trace-224   Light-33, Mod-67,Heavy-10,Very H-4
+head(Precip_days3) 
+
+class.freq6 <- table(Precip_days3$Precip_class6)
+h1 <- barplot(class.freq6, ylim=c(0, max(class.freq6) + 15), main = 'Precipitation Classification 6', col = 'purple')
+text(h1,class.freq6+1, class.freq6, adj=c(0.5, -0.5))
+
+tree <- ctree(Precip_class6~Days, data = Precip_days3)
+plot(tree)
+
+
+#binary
+tree <- ctree(Precip_class6 ~ Date_bin, data = Precip_days3)
+plot(tree)
+
+Head(precip)

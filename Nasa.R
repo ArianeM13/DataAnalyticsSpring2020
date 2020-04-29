@@ -38,6 +38,50 @@ plot(Date_bin ~ Precip_avg.mm., data = Precip_Binary, pch = 16,
      xlab = 'Precipitaion Average (mm)', ylab = 'Presence of Dust' )
 lines(xPrecip_avg, yPrecip_avg, col = "green", lwd = 2)
 
+head(Precip_Binary)
+#Model using regression splitting data
+set.seed(1000)
+#Creating training set of 70% of data
+ran <- sample(1:nrow(Precip_Binary), 0.7 * nrow(Precip_Binary))
+APrecip_train <- Precip_Binary[ran,] 
+head(APrecip_train)
+
+#Creating test set of 30% of data
+APrecip_test <- Precip_Binary[-ran,]
+head(APrecip_test)
+
+BRmodel2 <- glm(Date_bin ~ Precip_avg.mm., data = APrecip_train , family = "binomial")
+summary(BRmodel2)
+head(BRmodel2)
+
+#res plot
+BR.res <- resid(BRmodel2)
+plot(APrecip_train$Date_bin, BR.res, main ='Residual Plot with resid')
+plot(BRmodel2$residuals, main = 'Residual Plot')
+
+#Prediction
+RegPred <- predict(BRmodel2, APrecip_test,type="response")
+actuals_preds <- data.frame(cbind(actuals=APrecip_test$Date_bin, predicteds=RegPred))  # make actuals_predicteds dataframe.
+correlation_accuracy <- cor(actuals_preds)
+correlation_accuracy #8.765833e-05
+head(actuals_preds)
+plot(actuals_preds, ,main = 'Plot of Actuals vs Precdicted')
+
+#Min_max Accuracy - Higher the better
+min_max_accuracy <- mean(apply(actuals_preds, 1, min) / apply(actuals_preds, 1, max))  
+min_max_accuracy #0.09331581
+
+#MAPE (Mean absolute percentage error) - lower the better
+mape <- mean(abs((actuals_preds$predicteds - actuals_preds$actuals))/actuals_preds$actuals) 
+mape #wqinf
+
+#model plot
+plot(Date_bin ~ Precip_avg.mm., data = APrecip_test, pch = 16, 
+     xlab = 'Precipitaion Average (mm)', ylab = 'Presence of Dust' )
+#lines(BRmodel2$model, col = "green", lwd = 2)
+Precip_avg.mm. <- data.frame(APrecip_test$Precip_avg.mm.)
+head(Precip_avg.mm.)
+curve(predict(BRmodel2, data.frame(Precip_avg.mm.= x),type="response"),add=TRUE)
 
 #PRECIPITAION CLASSIFICATION
 #EDA
@@ -303,11 +347,9 @@ text(h1,class.freq6+1, class.freq6, adj=c(0.5, -0.5))
 tree <- ctree(Precip_class6~Days, data = Precip_days2)
 plot(tree)
 
-
 #binary
 tree <- ctree(Precip_class6 ~ Date_bin, data = Precip_days2)
 plot(tree)
-
 
 tree <- ctree(Precip_class6~Precip_avg.mm., data = Precip_days2)
 plot(tree)
@@ -370,11 +412,9 @@ text(h1,class.freq9+1, class.freq9, adj=c(0.5, -0.5))
 tree <- ctree(Precip_class9~Days, data = Precip_days2)
 plot(tree)
 
-
 #binary
 tree <- ctree(Precip_class9 ~ Date_bin, data = Precip_days2)
 plot(tree)
-
 
 tree <- ctree(Precip_class9~Precip_avg.mm., data = Precip_days2)
 plot(tree)
@@ -440,9 +480,8 @@ class.freq6 <- table(Precip_days3$Precip_class6)
 h1 <- barplot(class.freq6, ylim=c(0, max(class.freq6) + 15), main = 'Precipitation Classification', col = 'purple')
 text(h1,class.freq6+1, class.freq6, adj=c(0.5, -0.5))
 
-tree <- ctree(Precip_class6~Days, data = Precip_days3)
-plot(tree)
-
+tree6 <- ctree(Precip_class6~Days, data = Precip_days3)
+plot(tree6)
 
 #binary
 tree <- ctree(Precip_class6 ~ Date_bin, data = Precip_days3)
@@ -459,8 +498,7 @@ h1 <- barplot(class.freq10, ylim=c(0, max(class.freq10) + 15), main = 'Precipita
 text(h1,class.freq10+1, class.freq10, adj=c(0.5, -0.5))
 
 tree <- ctree(Precip_class10~Days, data = Precip_days3)
-plot(tree)
-
+plot(tree) #Still splits into two
 
 #binary
 tree <- ctree(Precip_class10 ~ Date_bin, data = Precip_days3)
@@ -479,9 +517,128 @@ text(h1,class.freq6+1, class.freq6, adj=c(0.5, -0.5))
 tree <- ctree(Precip_class6~Days, data = Precip_days3)
 plot(tree)
 
+tree <- ctree(Days~Precip_class, data = Precip_days3)
+plot(tree)
 
 #binary
 tree <- ctree(Precip_class6 ~ Date_bin, data = Precip_days3)
 plot(tree)
 
-Head(precip)
+tree <- ctree(Date_bin ~ Precip_class6, data = Precip_days3)
+plot(tree)
+
+tree <- ctree(Date_bin ~ Precip_class, data = Precip_days3)
+plot(tree)
+
+#Barplot with classification 1 and 6
+#Light-257, Mod-58,Heavy-9,Very H-14 -1
+#Trace-224   Light-33, Mod-67,Heavy-10,Very H-4 - 6
+
+Class <- matrix(c(0,257,58,9,14,224,33,67,10,4),ncol=5,byrow=TRUE)
+colnames(Class) <- c("Trace","Light","Moderate", "Heavy", "Very Heavy")
+rownames(Class) <- c("Class 1", "Class 6")
+Class <- as.table(Class)
+Class
+
+h1 <- barplot(Class, ylim=c(0, max(Class) + 15), main="Precipitation Classification",
+        col=c("light blue","light green"), beside = T)
+text(h1,Class+1, Class, adj=c(0.5, -0.5))
+
+legend("topright",c("Initial","Other"),
+       fill = c("light blue","light green"))
+#Prediction with  classification 1 and 6
+head(Precip_days3)
+
+set.seed(1000)
+#Creating training set of 70% of data
+rand <- sample(1:nrow(Precip_days3), 0.7 * nrow(Precip_days3))
+Precip_train <- Precip_days3[rand,] 
+head(Precip_train)
+
+#Creating test set of 30% of data
+Precip_test <- Precip_train[-rand,]
+head(Precip_test)
+
+tree_train1 <- ctree(Precip_class~Days, data = Precip_train)
+plot(tree_train1)
+
+tree_train6 <- ctree(Precip_class6~Days, data = Precip_train)
+plot(tree_train6)
+
+#making predictions with the trees
+
+Precip_pred1 <- predict(tree_train1,Precip_test)
+Precip_pred6 <- predict(tree_train6,Precip_test)
+
+tab1 <- table(Precip_pred1,Precip_test$Precip_class)
+tab1
+
+tab6 <- table(Precip_pred6,Precip_test$Precip_class6)
+tab6
+
+accuracy <- function(x){sum(diag(x)/(sum(rowSums(x)))) * 100}
+
+accuracy(tab1) #74.28571
+accuracy(tab6)#64.28571
+
+#model predictions of days based on precip
+tree6 <- ctree(Days~Precip_class6, data = Precip_train)
+plot(tree6)
+
+tree1 <- ctree(Days~Precip_class, data = Precip_train)
+plot(tree1)
+
+Precip_pred1.1 <- predict(tree1,Precip_test)
+Precip_pred6.1 <- predict(tree6,Precip_test)
+
+tab1 <- table(Precip_pred1.1,Precip_test$Days)
+tab1
+
+tab6 <- table(Precip_pred6.1,Precip_test$Days)
+tab6
+
+accuracy(tab1) #32.85714
+accuracy(tab6) #34.28571
+
+
+#maing predictions with the binary trees
+
+treeb1 <- ctree(Precip_class ~ Date_bin, data = Precip_train)
+plot(treeb1)
+
+treeb6 <- ctree(Precip_class6 ~ Date_bin, data = Precip_train)
+plot(treeb6)
+
+Precip_predb1 <- predict(treeb1,Precip_test)
+Precip_predb6 <- predict(treeb6,Precip_test)
+
+tabb1 <- table(Precip_predb1,Precip_test$Precip_class)
+tabb1
+
+tabb6 <- table(Precip_predb6,Precip_test$Precip_class6)
+tabb6
+
+accuracy(tabb1) #74.28571
+accuracy(tabb6) #64.28571
+
+#other way
+
+treeb1.1 <- ctree(Date_bin~Precip_class, data = Precip_train)
+plot(treeb1.1)
+
+treeb6.1 <- ctree(Date_bin~Precip_class6, data = Precip_train)
+plot(treeb6.1)
+
+Precip_predb1.1 <- predict(treeb1.1,Precip_test)
+Precip_predb6.1 <- predict(treeb6.1,Precip_test)
+
+tabb1.1 <- table(Precip_predb1.1,Precip_test$Date_bin)
+tabb1.1
+
+tabb6.1 <- table(Precip_predb6.1,Precip_test$Date_bin)
+tabb6.1
+
+accuracy(tabb1.1) #45.71429
+accuracy(tabb6.1) #45.71429
+
+

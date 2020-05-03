@@ -11,13 +11,13 @@ sapply(Precip_Binary,sd)
 
 #Histogram
 par(mfrow = c(1,2))
-h1 <- hist(Precip_Binary$Precip_avg.mm.,main = 'Precipitation', xlab = 'Precipitation Average (mm)',col = 'light gray')
+h1 <- hist(Precip_Binary$Precip_avg.mm.,main = 'Precipitation', breaks = 20, xlab = 'Precipitation Average (mm)',col = 'light gray')
 text(h1$mids,h1$counts,labels=h1$counts, adj=c(0.5, -0.5))
 h2 <- hist(Precip_Binary$Date_bin, main = 'Dust',xlab = 'Presence of dust', xlim=c(0,1), breaks = 2, xaxt = 'n', col = 'light green')
 axis(side=1, at=seq(0,1,1), labels=seq(0,1,1))
 text(h2$mids,h2$counts,labels=h2$counts, adj=c(0.5, -0.5))
 
-boxplot(Precip_Binary$Precip_avg.mm., ylab = 'Precipitaion avg (mm)', col="light blue")
+boxplot(Precip_Binary$Precip_avg.mm.,ylab = 'Precipitaion avg (mm)', col="light blue")
 
 #Scatterplot
 plot(Precip_Binary$Precip_avg.mm.,Precip_Binary$Date_bin, main = "Presence of Dust vs Precipitation Average",
@@ -432,7 +432,7 @@ Precip_days3$Days <- droplevels(Precip_days3$Days)
 str(Precip_days2$Days)
 #levels(Precip_days2$Days) <- c('day_before','day_of','1day_after','2days_after')
 
-boxplot(Precip_avg.mm.~Days, data =Precip_days3,ylab = 'Precipitaion avg (mm)', col="light blue")
+boxplot(Precip_avg.mm.~Days, data =Precip_days3, horizontal = T, ylab = 'Precipitaion avg (mm)', col="light blue")
 title('Precipitation Averages for all days')
 
 #Class 1
@@ -442,7 +442,7 @@ summary(Precip_days3$Precip_class) # Light-257, Mod-58,Heavy-9,Very H-14
 head(Precip_days3)
 
 class.freq <- table(Precip_days3$Precip_class)
-h1 <- barplot(class.freq, ylim=c(0, max(class.freq) + 15), main = 'Precipitation Classification', col = 'orange')
+h1 <- barplot(class.freq, ylim=c(0, max(class.freq) + 15), main = 'Precipitation Classification', col = 'light blue')
 text(h1,class.freq+1, class.freq, adj=c(0.5, -0.5))
 
 tree <- ctree(Precip_class~Days, data = Precip_days3)

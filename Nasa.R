@@ -18,11 +18,42 @@ axis(side=1, at=seq(0,1,1), labels=seq(0,1,1))
 text(h2$mids,h2$counts,labels=h2$counts, adj=c(0.5, -0.5))
 
 boxplot(Precip_Binary$Precip_avg.mm.,ylab = 'Precipitaion avg (mm)', col="light blue")
+par(mfrow = c(3,1))
+
+bar <- ggplot(Precip_Binary, aes(x=Date_bin)) + geom_bar(fill = 'steelblue3') +
+        theme_minimal()+
+        geom_text(stat='count', aes(label=..count..), vjust=-0.5)+
+        labs(x = "Presence of Dust")
+bar
+
+hist <- ggplot(Precip_Binary, aes(x=Precip_avg.mm.)) + geom_histogram(col= 'darkorchid4' ,fill = 'orchid3') +
+        theme_minimal()+
+        stat_bin(aes(y=..count.., label=..count..), geom="text", vjust=-.5)+
+        labs(x="Precipitaion Average (mm)")
+hist
+
+bp <- ggplot(Precip_Binary, aes(x ='', y=Precip_avg.mm.)) + 
+        geom_boxplot (fill="#69b3a2")+
+        theme_minimal()+
+        labs(y="Precipitaion Average (mm)")
+bpr <- bp + coord_flip()
+bpr
+
+grid.arrange(bar, hist, bpr, 
+          ncol = 1, nrow = 3,
+          heights =c (1.1,1.1,.5))
+        
 
 #Scatterplot
 plot(Precip_Binary$Precip_avg.mm.,Precip_Binary$Date_bin, main = "Presence of Dust vs Precipitation Average",
      xlab = "Precipitaion Average (mm)", ylab = "Presence of Dust",
      ylim = c(0,1), pch = 19)
+
+ggplot(Precip_Binary, aes(x=Precip_avg.mm., y=Date_bin)) +
+        geom_point(col= 'indianred4')+
+        theme_minimal()+
+        labs(x="Precipitaion Average (mm)", y = "Presence of Dust")
+        
 
 #Model
 BRmodel <- glm(Date_bin ~ Precip_avg.mm., data = Precip_Binary, family = "binomial")
@@ -131,6 +162,24 @@ title('Precipitation 2 Days After')
 boxplot(Precip_avg.mm.~Days, data =Precip_days1,ylab = 'Precipitaion avg (mm)', col="light blue")
 title('Precipitation Averages for all days')
 
+#ggplot
+box1  <- ggplot(Precip_days3, aes(x=Days, y=Precip_avg.mm., color=Days)) +
+        geom_boxplot()+
+        theme_minimal()+
+        labs(y="Precipitaion Average (mm)")
+boxf<-box1+ coord_flip()
+
+hist1 <- ggplot(Precip_days3, aes(x=Precip_avg.mm., fill = Days)) + 
+        geom_histogram() +
+        theme_minimal()+
+        labs(x="Precipitaion Average (mm)")
+histf<-hist1+ coord_flip()
+
+
+grid.arrange(hist1,boxf, 
+             ncol = 1, nrow = 2)
+             #heights =c (1.1,1.1,.5))
+             
 #changing structure of factor levels - Messed up data
 str(Precip_days1$Days)
 Precip_days2 <- Precip_days1
@@ -451,10 +500,10 @@ h1 <- barplot(class.freq, ylim=c(0, max(class.freq) + 15), main = 'Precipitation
 text(h1,class.freq+1, class.freq, adj=c(0.5, -0.5))
 
 ggplot(Precip_days3, aes(x=Precip_class)) + 
-        geom_bar(stat = "count" , fill = "light blue") +
+        geom_bar(stat = "count" , fill = "skyblue3") +
         theme_minimal()+
-        geom_text(stat='count', aes(label=..count..), vjust=-1)
-
+        geom_text(stat='count', aes(label=..count..), vjust=-1)+
+        labs(x="Precipitaion Class")
 
 #Correlation Matrix
 PrecipCorr1 <- data.frame(PrecipClass = as.numeric(Precip_days3$Precip_class),
@@ -488,19 +537,12 @@ library(gridExtra)
 #         scale_fill_hue() +
 #         theme_minimal()
 
-ggplot(Precip_days3) +
-        aes(x = Date_bin, fill = Precip_class) +
-        geom_bar() +
-        scale_fill_hue() +
-        theme_minimal()+
-        annotate(geom = "Corr1")
-
-
-ggplot(Precip_days3) +
-        aes(x = Days, fill = Precip_class) +
-        geom_bar() +
-        scale_fill_hue() +
-        theme_minimal()
+# ggplot(Precip_days3) +
+#         aes(x = Date_bin, fill = Precip_class) +
+#         geom_bar() +
+#         scale_fill_hue() +
+#         theme_minimal()+
+#         annotate(geom = "Corr1")
 
 
 Corr1 <- table(Precip_days3$Precip_class,Precip_days3$Date_bin)
@@ -509,8 +551,10 @@ plot(Corr1, main= 'Days(Binary) vs Preciptation Class')
 preciplot <- ggplot(Precip_days3) +
         aes(x = Date_bin, fill = Precip_class) +
         geom_bar() +
-        scale_fill_hue() +
-        theme_minimal()
+        scale_fill_brewer(palette="Set2")+
+        theme_minimal()+
+        labs(fill = "Precip Class")
+        #geom_text(aes(label=..count..),stat="count",position=position_stack(0.5))
 preciplot
 tt <- ttheme_default(core = list(padding=unit(c(20,4), "mm")))
 Corrtab <- tableGrob(Corr1, theme=tt)
@@ -528,11 +572,28 @@ fisher.test(Corr1)
 Corr2 <- table(Precip_days3$Precip_class,Precip_days3$Days)
 Corr2
 plot(Corr2, col('light blue'))
+preciplot2 <- ggplot(Precip_days3) +
+        aes(x = Days, fill = Precip_class) +
+        geom_bar() +
+        scale_fill_brewer(palette="Set2")+
+        theme_minimal()+
+        labs(fill = "Precip Class")
+        #geom_text(aes(label=..count..),stat="count",position=position_stack(0.5))
+    
+preciplot2
+tt <- ttheme_default()
+Corrtab2 <- tableGrob(Corr2, theme=tt)
+grid.arrange(preciplot2, Corrtab2,
+             nrow=2,
+             as.table=TRUE,
+             heights = c(3, 1))
+
 chisq.test(Precip_days3$Precip_class,Precip_days3$Days)
 chisq.test(Corr2)
 #cramersV(Precip_days3$Precip_class,Precip_days3$Days)
 fisher.test(Precip_days3$Precip_class,Precip_days3$Days,workspace=2e8)
 fisher.test(Corr2,workspace=2e8)
+fisher.test(Corr2,simulate.p.value=TRUE,B=1e7)
 
 #Decision Tree
 tree <- ctree(Precip_class~Days, data = Precip_days3)
@@ -571,9 +632,10 @@ h1 <- barplot(class.freq6, ylim=c(0, max(class.freq6) + 15), main = 'Precipitati
 text(h1,class.freq6+1, class.freq6, adj=c(0.5, -0.5))
 
 ggplot(Precip_days3, aes(x=Precip_class6)) + 
-        geom_bar(stat = "count" , fill = "light green") +
+        geom_bar(stat = "count" , fill = "aquamarine3") +
         theme_minimal() +
-        geom_text(stat='count', aes(label=..count..), vjust=-1)
+        geom_text(stat='count', aes(label=..count..), vjust=-1)+
+        labs(x="Expanded Precipitaion Class")
 
 #Correlation Matrix
 # Corr3 <- table(Precip_days3$Precip_class6,Precip_days3$Date_bin)
@@ -588,6 +650,63 @@ ggplot(Precip_days3, aes(x=Precip_class6)) +
 # plot(Corr4, col('light blue'))
 # chisq.test(Precip_days3$Precip_class6,Precip_days3$Days)
 # cramersV(Precip_days3$Precip_class6,Precip_days3$Days)
+
+# ggplot(Precip_days3) +
+#         aes(x = Date_bin, fill = Precip_class6) +
+#         geom_bar() +
+#         scale_fill_hue() +
+#         theme_minimal()+
+#         annotate(geom = "Corr3")
+
+
+Corr3 <- table(Precip_days3$Precip_class6,Precip_days3$Date_bin)
+Corr3
+#plot(Corr3, main= 'Days(Binary) vs Expanded Preciptation Class')
+preciplot3 <- ggplot(Precip_days3) +
+        aes(x = Date_bin, fill = Precip_class6) +
+        geom_bar() +
+        scale_fill_brewer(palette="Dark2")+
+        theme_minimal()+
+        labs(fill = "Precip Class")
+        #geom_text(aes(label=..count..),stat="count",position=position_stack(0.5))
+
+preciplot3
+tt <- ttheme_default(core = list(padding=unit(c(20,4), "mm")))
+Corrtab3 <- tableGrob(Corr3, theme=tt)
+grid.arrange(preciplot3, Corrtab3,
+             nrow=2,
+             as.table=TRUE,
+             heights = c(3, 1))
+
+chisq.test(Precip_days3$Precip_class6,Precip_days3$Date_bin)
+chisq.test(Corr3)
+#cramersV(Precip_days3$Precip_class,Precip_days3$Date_bin)
+fisher.test(Precip_days3$Precip_class6,Precip_days3$Date_bin)
+fisher.test(Corr3)
+
+Corr4 <- table(Precip_days3$Precip_class6,Precip_days3$Days)
+Corr4
+#plot(Corr4, col('light blue'))
+preciplot4 <- ggplot(Precip_days3) +
+        aes(x = Days, fill = Precip_class6) +
+        geom_bar() +
+        scale_fill_brewer(palette="Dark2")+
+        theme_minimal()+
+        labs(fill = "Precip Class")
+        #geom_text(aes(label=..count..),stat="count",position=position_stack(0.5))
+preciplot4
+tt <- ttheme_default()
+Corrtab4 <- tableGrob(Corr4, theme=tt)
+grid.arrange(preciplot4, Corrtab4,
+             nrow=2,
+             as.table=TRUE,
+             heights = c(3, 1))
+
+chisq.test(Precip_days3$Precip_class6,Precip_days3$Days)
+chisq.test(Corr4)
+#cramersV(Precip_days3$Precip_class,Precip_days3$Days)
+fisher.test(Precip_days3$Precip_class6,Precip_days3$Days, simulate.p.value=TRUE,B=1e7)
+fisher.test(Corr4, simulate.p.value=TRUE,B=1e7)
 
 
 #Decision Tree

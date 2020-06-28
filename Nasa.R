@@ -483,6 +483,7 @@ Precip_days3 <- Precip_days1
 Precip_days3$Days <- droplevels(Precip_days3$Days)
 str(Precip_days2$Days)
 str(Precip_days3$Days)
+levels(Precip_days3$Days)
 
 #levels(Precip_days2$Days) <- c('day_before','day_of','1day_after','2days_after')
 
@@ -505,12 +506,28 @@ ggplot(Precip_days3, aes(x=Precip_class)) +
         geom_text(stat='count', aes(label=..count..), vjust=-1)+
         labs(x="Precipitaion Class")
 
-#Correlation Matrix
+#Correlation Matrix - http://www.sthda.com/english/wiki/correlation-matrix-a-quick-start-guide-to-analyze-format-and-visualize-a-correlation-matrix-using-r-software
+#https://rpubs.com/hoanganhngo610/558925
+#https://towardsdatascience.com/fishers-exact-test-in-r-independence-test-for-a-small-sample-56965db48e87
+#http://www.sthda.com/english/wiki/chi-square-test-of-independence-in-r
+
 PrecipCorr1 <- data.frame(PrecipClass = as.numeric(Precip_days3$Precip_class),
                           PrecipBin = as.numeric(Precip_days3$Date_bin),
                           PrecipDays = as.numeric(Precip_days3$Days))
-
+PrecipCorr <- data.frame(PrecipClass = Precip_days3$Precip_class,
+                          PrecipBin = Precip_days3$Date_bin,
+                          PrecipDays = Precip_days3$Days)
+head(PrecipCorr)
 head(PrecipCorr1)
+comp<- data.frame (Num = PrecipCorr1$PrecipClass, Class=Precip_days3$Precip_class)
+comp
+
+comp2<- data.frame (Num = PrecipCorr1$PrecipDays, Class=Precip_days3$Days)
+comp2
+
+comp3<- data.frame (Num = PrecipCorr1$PrecipBin, Class=Precip_days3$Date_bin)
+comp3
+
 # library(lsr)
 # PrecipClass <-data.frame(Precip_days3$Precip_class)
 # PrecipBin <- data.frame(Precip_days3$Date_bin)
@@ -522,14 +539,107 @@ head(PrecipCorr1)
 # 
 # cor(PrecipCorr1$PrecipDays, PrecipCorr1$PrecipClassNum)
 # cor(PrecipCorr1$PrecipClassNum, PrecipCorr1$PrecipClass)
-datacor <- cor(PrecipCorr1)
-datacor
+# datacorP <- cor(PrecipCorr1)
+# datacorP
+
+datacorS <- cor(PrecipCorr1, method = "spearman")
+datacorS
+
+# datacorK <- cor(PrecipCorr1, method = "kendall")
+# datacorK
+
 library(corrplot)
-corrplot(datacor)
-plot(PrecipCorr1$PrecipClass,PrecipCorr1$PrecipDays)
+par(mfrow = c(2,1))
+corrplot(datacorS)
+#cplot <- plot(PrecipCorr1$PrecipClass,PrecipCorr1$PrecipDays)
+
+# tt <- ttheme_default()
+# Corr <- tableGrob(datacor, theme=tt)
+# Corr
+# grid.arrange(corrplot(datacor), cplot,
+#              nrow=2,
+#              as.table=TRUE,
+#              heights = c(3, 1))
+
+library("Hmisc") #gets p-values
+# pcorr <- rcorr(as.matrix(PrecipCorr1)) 
+# pcorr
+# # Extract the correlation coefficients
+# pcorr$r
+# # Extract p-values
+# pcorr$P
+# corrplot(pcorr$rho)
+
+scorr <- rcorr(as.matrix(PrecipCorr1), type = 'spearman') 
+scorr
+# Extract the correlation coefficients
+scorr$r
+# Extract p-values
+scorr$P
+corrplot(scorr$r)
+
+# ++++++++++++++++++++++++++++
+# flattenCorrMatrix
+# ++++++++++++++++++++++++++++
+# cormat : matrix of the correlation coefficients
+# pmat : matrix of the correlation p-values
+flattenCorrMatrix <- function(cormat, pmat) {
+        ut <- upper.tri(cormat)
+        data.frame(
+                row = rownames(cormat)[row(cormat)[ut]],
+                column = rownames(cormat)[col(cormat)[ut]],
+                cor  =(cormat)[ut],
+                p = pmat[ut]
+        )
+}
+
+# corr <- flattenCorrMatrix(pcorr$r, pcorr$P)
+# colnames(corr) <- c('Row', 'Column', 'Correlation', 'p-value')
+# corr
+# 
+# tt <- ttheme_default()
+# Corr <- tableGrob(corr, theme=tt)
+# 
+# 
+# par(mfrow = c(2,1))
+# corrplot(pcorr$r)
+# grid.arrange(Corr,
+#              nrow=2,
+#              as.table=TRUE,
+#              heights = c(2, 1))
+# corrplot(pcorr$r, type = "upper", order = "hclust", 
+#          tl.col = "black", tl.srt = 45)
+
+#Spearman
+corrs <- flattenCorrMatrix(scorr$r, scorr$P)
+colnames(corrs) <- c('Row', 'Column', 'Correlation', 'p-value')
+corrs
+
+tt <- ttheme_default()
+Corrs <- tableGrob(corrs, theme=tt)
+
+par(mfrow = c(2,1))
+corrplot(scorr$r)
+grid.arrange(Corrs,
+             nrow=2,
+             as.table=TRUE,
+             heights = c(2, 1))
+corrplot(scorr$r, type = "upper", order = "hclust", 
+         tl.col = "black", tl.srt = 45)
+
+# # Insignificant correlation are crossed p-value >0.01
+# corrplot(pcorr$r, type="upper", order="hclust", 
+#          p.mat = pcorr$P, sig.level = 0.01, insig = "pch")
+# # Insignificant correlations are left blank
+# corrplot(pcorr$r, type="upper", order="hclust", 
+#          p.mat = pcorr$P, sig.level = 0.01, insig = "blank")
+# 
+# palette = colorRampPalette(c("green", "white", "red")) (20)
+# heatmap(x = datacor, col = palette, symm = TRUE)
 
 library(ggplot2)
 library(gridExtra)
+library(lsr) #Cramer's
 
 # ggplot(Precip_days3) +
 #         aes(x = Precip_class, fill = Days) +
@@ -547,31 +657,42 @@ library(gridExtra)
 
 Corr1 <- table(Precip_days3$Precip_class,Precip_days3$Date_bin)
 Corr1
-plot(Corr1, main= 'Days(Binary) vs Preciptation Class')
+#plot(Corr1, main= 'Days(Binary) vs Preciptation Class')
 preciplot <- ggplot(Precip_days3) +
         aes(x = Date_bin, fill = Precip_class) +
         geom_bar() +
         scale_fill_brewer(palette="Set2")+
-        theme_minimal()+
-        labs(fill = "Precip Class")
+        theme_minimal() +
+        labs(y = 'Count', x= 'DustDay (Binary)', fill = "Precip Class")
         #geom_text(aes(label=..count..),stat="count",position=position_stack(0.5))
+   
 preciplot
 tt <- ttheme_default(core = list(padding=unit(c(20,4), "mm")))
 Corrtab <- tableGrob(Corr1, theme=tt)
+Corrtab
 grid.arrange(preciplot, Corrtab,
              nrow=2,
              as.table=TRUE,
              heights = c(3, 1))
 
+library("gplots")
+balloonplot(t(Corr2), main ="", xlab ="", ylab="",
+            label = FALSE, show.margins = FALSE)
+
 chisq.test(Precip_days3$Precip_class,Precip_days3$Date_bin)
-chisq.test(Corr1)
-#cramersV(Precip_days3$Precip_class,Precip_days3$Date_bin)
+chisq.test(Corr1)#same
+# Warning produced
+chisq.test(Corr1)$observed
+chisq.test(Corr1)$expected
+chisq.test(Corr1)$residuals
+# Some expected less than 5
+cramersV(Precip_days3$Precip_class,Precip_days3$Date_bin)
 fisher.test(Precip_days3$Precip_class,Precip_days3$Date_bin)
 fisher.test(Corr1)
 
 Corr2 <- table(Precip_days3$Precip_class,Precip_days3$Days)
 Corr2
-plot(Corr2, col('light blue'))
+#plot(Corr2, col('light blue'))
 preciplot2 <- ggplot(Precip_days3) +
         aes(x = Days, fill = Precip_class) +
         geom_bar() +
@@ -638,26 +759,41 @@ ggplot(Precip_days3, aes(x=Precip_class6)) +
         labs(x="Expanded Precipitaion Class")
 
 #Correlation Matrix
-# Corr3 <- table(Precip_days3$Precip_class6,Precip_days3$Date_bin)
-# Corr3
-# plot(Corr3, main= 'Days(Binary) vs Expanded Precip Class')
-# chisq.test(Precip_days3$Precip_class6,Precip_days3$Date_bin)
-# cramersV(Precip_days3$Precip_class6,Precip_days3$Date_bin)
-# 
-# 
-# Corr4 <- table(Precip_days3$Precip_class6,Precip_days3$Days)
-# Corr4
-# plot(Corr4, col('light blue'))
-# chisq.test(Precip_days3$Precip_class6,Precip_days3$Days)
-# cramersV(Precip_days3$Precip_class6,Precip_days3$Days)
+PrecipCorr6 <- data.frame(PrecipClass = as.numeric(Precip_days3$Precip_class6),
+                          PrecipBin = as.numeric(Precip_days3$Date_bin),
+                          PrecipDays = as.numeric(Precip_days3$Days))
+head(PrecipCorr6)
+str(PrecipCorr6)
+head(Precip_days3)
+str(Precip_days3)
 
-# ggplot(Precip_days3) +
-#         aes(x = Date_bin, fill = Precip_class6) +
-#         geom_bar() +
-#         scale_fill_hue() +
-#         theme_minimal()+
-#         annotate(geom = "Corr3")
+datacor6 <- cor(PrecipCorr6)
+datacor6
 
+corrplot(datacor6)
+#get p-values
+pcorr6 <- rcorr(as.matrix(PrecipCorr6)) 
+pcorr6
+# Extract the correlation coefficients
+pcorr6$r
+# Extract p-values
+pcorr6$P
+
+corr6 <- flattenCorrMatrix(pcorr6$r, pcorr6$P)
+corr6
+colnames(corr6) <- c('Row', 'Column', 'Correlation', 'p-value')
+
+tt <- ttheme_default()
+Corr6 <- tableGrob(corr6, theme=tt)
+
+par(mfrow = c(2,1))
+corrplot(datacor6)
+grid.arrange(Corr6,
+             nrow=2,
+             as.table=TRUE,
+             heights = c(2, 1))
+corrplot(datacor6, type = "upper", order = "hclust", 
+         tl.col = "black", tl.srt = 45)
 
 Corr3 <- table(Precip_days3$Precip_class6,Precip_days3$Date_bin)
 Corr3
@@ -707,6 +843,22 @@ chisq.test(Corr4)
 #cramersV(Precip_days3$Precip_class,Precip_days3$Days)
 fisher.test(Precip_days3$Precip_class6,Precip_days3$Days, simulate.p.value=TRUE,B=1e7)
 fisher.test(Corr4, simulate.p.value=TRUE,B=1e7)
+
+#plotting residuals from chi-squared
+chisq.test(Corr1)$residuals
+chisq.test(Corr2)$residuals
+chisq.test(Corr3)$residuals
+chisq.test(Corr4)$residuals
+
+par(mfrow = c(2,2))
+corrplot(chisq.test(Corr1)$residuals,
+         is.cor = FALSE, tl.col = "black", tl.srt = 45)
+corrplot(chisq.test(Corr3)$residuals, is.cor = FALSE, 
+         tl.col = "black", tl.srt = 45)
+corrplot(chisq.test(Corr2)$residuals,
+         is.cor = FALSE, tl.col = "black", tl.srt = 45)
+corrplot(chisq.test(Corr4)$residuals, is.cor = FALSE, 
+         tl.col = "black", tl.srt = 45)
 
 
 #Decision Tree
@@ -808,6 +960,7 @@ tab1
 tab6 <- table(Precip_pred6,Precip_test$Precip_class6)
 tab6
 
+#https://towardsdatascience.com/k-nearest-neighbors-algorithm-with-examples-in-r-simply-explained-knn-1f2c88da405c
 accuracy <- function(x){sum(diag(x)/(sum(rowSums(x)))) * 100}
 
 accuracy(tab1) #74.28571

@@ -21,6 +21,8 @@ str(Precip_days) #inital levels for days are not what I want
 
 #EDA
 #Binary
+library(ggplot2)
+library(gridExtra)
 bar <- ggplot(Precip_Binary, aes(x=Date_bin)) + geom_bar(fill = 'steelblue3') +
   theme_minimal()+
   #geom_text(stat='count', aes(label=..count..), vjust=-0.5)+
@@ -498,17 +500,164 @@ grid.arrange(preciplot3, preciplot4, Corrtab3,Corrtab4,
              as.table=TRUE,
              heights = c(3, 1))
 
-#Chi-Squared Test
+#Chi-Square Test
+library(lsr) #Cramer's
 #Initial Classification -Binary
-#4-Day
-#Expanded Classification-Binary
-#4-Day
+chisq.test(Preciplevel$Precip_class,Preciplevel$Date_bin)
+chisq.test(Corr1)#same
+# Warning produced
+chisq.test(Corr1)$observed
+chisq.test(Corr1)$expected
+chisq.test(Corr1)$residuals
+#cramersV(Preciplevel$Precip_class,Preciplevel$Date_bin)
+# Some expected less than 5
+fisher.test(Preciplevel$Precip_class,Preciplevel$Date_bin)
+fisher.test(Corr1)
 
-#Spearman's Rank Correlation
-#Initial Classification-Binary
 #4-Day
+chisq.test(Preciplevel$Precip_class,Preciplevel$Days)
+chisq.test(Corr2)
+#cramersV(Preciplevel$Precip_class,Preciplevel$Days)
+fisher.test(Preciplevel$Precip_class,Preciplevel$Days,workspace=2e8)
+fisher.test(Corr2,workspace=2e8)
+fisher.test(Corr2,simulate.p.value=TRUE,B=1e7)
+
 #Expanded Classification-Binary
+chisq.test(Preciplevel$Precip_class6,Preciplevel$Date_bin)
+chisq.test(Corr3)
+#cramersV(Preciplevel$Precip_class,Preciplevel$Date_bin)
+fisher.test(Preciplevel$Precip_class6,Preciplevel$Date_bin)
+fisher.test(Corr3)
+
 #4-Day
+chisq.test(Preciplevel$Precip_class6,Preciplevel$Days)
+chisq.test(Corr4)
+#cramersV(Preciplevel$Precip_class,Preciplevel$Days)
+fisher.test(Preciplevel$Precip_class6,Preciplevel$Days, simulate.p.value=TRUE,B=1e7)
+fisher.test(Corr4, simulate.p.value=TRUE,B=1e7)
+
+#plotting residuals from chi-squared
+chisq.test(Corr1)$residuals
+chisq.test(Corr2)$residuals
+chisq.test(Corr3)$residuals
+chisq.test(Corr4)$residuals
+
+par(mfrow = c(2,2))
+corrplot(chisq.test(Corr1)$residuals,
+         is.cor = FALSE, tl.col = "black", tl.srt = 45)
+corrplot(chisq.test(Corr3)$residuals, is.cor = FALSE, 
+         tl.col = "black", tl.srt = 45)
+corrplot(chisq.test(Corr2)$residuals,
+         is.cor = FALSE, tl.col = "black", tl.srt = 45)
+corrplot(chisq.test(Corr4)$residuals, is.cor = FALSE, 
+         tl.col = "black", tl.srt = 45)
+
+#Spearman's and Kendall's Rank Correlation
+#Initial Classification
+PrecipCorr1 <- data.frame(PrecipClass = as.numeric(Preciplevel$Precip_class),
+                          PrecipBin = as.numeric(Preciplevel$Date_bin),
+                          PrecipDays = as.numeric(Preciplevel$Days))
+head(PrecipCorr1)
+comp<- data.frame (Num = PrecipCorr1$PrecipClass, Class=Preciplevel$Precip_class)
+comp
+
+comp2<- data.frame (Num = PrecipCorr1$PrecipDays, Class=Preciplevel$Days)
+comp2
+
+comp3<- data.frame (Num = PrecipCorr1$PrecipBin, Class=Preciplevel$Date_bin)
+comp3
+
+datacorS <- cor(PrecipCorr1, method = "spearman")
+datacorS
+
+datacorK <- cor(PrecipCorr1, method = "kendall")
+datacorK
+
+#Expanded Classification
+PrecipCorr6 <- data.frame(PrecipClass = as.numeric(Preciplevel$Precip_class6),
+                          PrecipBin = as.numeric(Preciplevel$Date_bin),
+                          PrecipDays = as.numeric(Preciplevel$Days))
+head(PrecipCorr6)
+comp4<- data.frame (Num = PrecipCorr6$PrecipClass, Class=Preciplevel$Precip_class6)
+comp4
+
+comp5<- data.frame (Num = PrecipCorr6$PrecipDays, Class=Preciplevel$Days)
+comp5
+
+comp6<- data.frame (Num = PrecipCorr6$PrecipBin, Class=Preciplevel$Date_bin)
+comp6
+
+datacorS2 <- cor(PrecipCorr6, method = "spearman")
+datacorS2
+
+datacorK2 <- cor(PrecipCorr6, method = "kendall")
+datacorK2
+
+#Using rcorr -spearman - to get both correlation coeff and p-value
+library("Hmisc") 
+library(corrplot)
+#Initial
+scorr <- rcorr(as.matrix(PrecipCorr1), type = 'spearman') 
+scorr
+scorr$r #same as cor()
+datacorS
+scorr$P
+corrplot(scorr$r)
+
+# ++++++++++++++++++++++++++++
+# flattenCorrMatrix
+# ++++++++++++++++++++++++++++
+# cormat : matrix of the correlation coefficients
+# pmat : matrix of the correlation p-values
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut],
+    p = pmat[ut]
+  )
+}
+
+corrs <- flattenCorrMatrix(scorr$r, scorr$P)
+colnames(corrs) <- c('Row', 'Column', 'Correlation', 'p-value')
+corrs
+
+tt <- ttheme_default()
+Corrs <- tableGrob(corrs, theme=tt)
+
+par(mfrow = c(2,1))
+corrplot(scorr$r)
+grid.arrange(Corrs,
+             nrow=2,
+             as.table=TRUE,
+             heights = c(2, 1))
+corrplot(scorr$r, type = "upper", order = "hclust", 
+         tl.col = "black", tl.srt = 45)
+
+#Expanded Classification
+scorr6 <- rcorr(as.matrix(PrecipCorr6), type = 'spearman') 
+scorr6
+scorr6$r #same as cor()
+datacorS2
+scorr6$P
+corrplot(scorr6$r)
+
+corrs6 <- flattenCorrMatrix(scorr6$r, scorr6$P)
+colnames(corrs6) <- c('Row', 'Column', 'Correlation', 'p-value')
+corrs6
+
+tt <- ttheme_default()
+Corrs6 <- tableGrob(corrs6, theme=tt)
+
+par(mfrow = c(2,1))
+corrplot(scorr6$r)
+grid.arrange(Corrs6,
+             nrow=2,
+             as.table=TRUE,
+             heights = c(2, 1))
+corrplot(scorr6$r, type = "upper", order = "hclust", 
+         tl.col = "black", tl.srt = 45)
 
 #Decision Tree - https://ademos.people.uic.edu/Chapter24.html
 #Initial Classification- 4-Day

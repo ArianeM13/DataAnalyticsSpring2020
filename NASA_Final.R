@@ -660,12 +660,69 @@ corrplot(scorr6$r, type = "upper", order = "hclust",
          tl.col = "black", tl.srt = 45)
 
 #Decision Tree - https://ademos.people.uic.edu/Chapter24.html
-#Initial Classification- 4-Day
-#Binary
-#Expanded Classification-4-Day
-#Binary
+head(Preciplevel)
 
+set.seed(1000)
+#Creating training set of 70% of data
+rand <- sample(1:nrow(Preciplevel), 0.7 * nrow(Preciplevel))
+Precip_train <- Preciplevel[rand,] 
+head(Precip_train)
+summary(Precip_train)
 
+#Creating test set of 30% of data
+Precip_test <- Precip_train[-rand,]
+head(Precip_test)
+summary(Precip_test)
+
+#Initial Classification - 4-Day
+tree_train1 <- ctree(Precip_class~Days, data = Precip_train)
+plot(tree_train1)
+
+Precip_pred1 <- predict(tree_train1,Precip_test)
+Precip_pred1
+tab1 <- table(Precip_pred1,Precip_test$Precip_class)
+tab1
+
+#https://towardsdatascience.com/k-nearest-neighbors-algorithm-with-examples-in-r-simply-explained-knn-1f2c88da405c
+accuracy <- function(x){sum(diag(x)/(sum(rowSums(x)))) * 100}
+
+accuracy(tab1) #74.28571
+
+#Expanded Classification - 4-Day
+tree_train6 <- ctree(Precip_class6~Days, data = Precip_train)
+plot(tree_train6)
+
+Precip_pred6 <- predict(tree_train6,Precip_test)
+Precip_pred6 
+
+tab6 <- table(Precip_pred6,Precip_test$Precip_class6)
+tab6
+
+accuracy(tab6)#64.28571
+
+#Initial Classification - Binary
+treeb1 <- ctree(Precip_class ~ Date_bin, data = Precip_train)
+plot(treeb1)
+
+Precip_predb1 <- predict(treeb1,Precip_test)
+Precip_predb1
+
+tabb1 <- table(Precip_predb1,Precip_test$Precip_class)
+tabb1
+
+accuracy(tabb1) #74.28571
+
+#Expanded Classification - Binary
+treeb6 <- ctree(Precip_class6 ~ Date_bin, data = Precip_train)
+plot(treeb6)
+
+Precip_predb6 <- predict(treeb6,Precip_test)
+Precip_predb6
+
+tabb6 <- table(Precip_predb6,Precip_test$Precip_class6)
+tabb6
+
+accuracy(tabb6) #64.28571
 
 
 
